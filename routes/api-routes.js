@@ -16,7 +16,9 @@ module.exports = function(app) {
   app.post("/api/signup", function(req, res) {
     db.User.create({
       email: req.body.email,
-      password: req.body.password
+      password: req.body.password,
+      lname: req.body.lname,
+      fname: req.body.fname
     })
       .then(function() {
         res.redirect(307, "/api/login");
@@ -34,16 +36,21 @@ module.exports = function(app) {
     });
   });
   // Route for getting some data about our user to be used client side
-  app.get("/api/user_data", function(req, res) {
+  app.get("/api/user_data", (req, res) => {
     if (!req.user) {
       // The user is not logged in, send back an empty object
       res.json({});
     } else {
       // Otherwise send back the user's email and id
       // Sending back a password, even a hashed password, isn't a good idea
-      res.json({
-        email: req.user.email,
-        id: req.user.id
+
+      db.User.findAll({
+        where: {
+          id: req.user.id
+        },
+        include: db.Course
+      }).then(dbCourseList => {
+        res.json(dbCourseList);
       });
     }
   });
